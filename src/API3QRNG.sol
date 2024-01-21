@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {RrpRequesterV0} from "lib/airnode/packages/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 
-// sử dụng import dưới thay thế khi dùng Remix để test
+// sử dụng import dưới thay thế khi dùng Remix để test, hoặc sử dụng remappings cho Foundry
 // import {RrpRequesterV0} from "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 
 contract API3QRNG is RrpRequesterV0 {
